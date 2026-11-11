@@ -50,6 +50,16 @@ function parseInvites(input: string): Route[] {
     })
 }
 
+/** Làm sạch giá trị dán vào .env/Secret: bỏ `VENUE=`, dấu nháy bao quanh (kể cả nháy cong), khoảng trắng thừa. */
+function cleanValue(input: string | undefined, name: string): string {
+  return (input ?? '')
+    .trim()
+    .replace(new RegExp(`^${name}\\s*=\\s*`), '')
+    .replace(/^["'“”‘’]+|["'“”‘’]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function invitePages(routes: Route[], venue: string): Plugin {
   const dataFor = (r?: Route) => ({
     key: r?.path ?? 'home',
@@ -108,6 +118,6 @@ export default defineConfig(({ mode }) => {
   }
   return {
     base: './',
-    plugins: [react(), invitePages(routes, (env.VENUE ?? '').trim())],
+    plugins: [react(), invitePages(routes, cleanValue(env.VENUE, 'VENUE'))],
   }
 })
