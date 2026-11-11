@@ -1,18 +1,66 @@
 import { content } from './content'
 
-const KEY = 'graduation-invite:introSeen:v1'
+const KEY_PREFIX = 'graduation-invite:introSeen:v1:'
 
-export function hasSeenIntro(): boolean {
+export interface Resolved {
+  /** Định danh thiệp, dùng làm khoá lưu "đã xem intro" riêng cho từng link */
+  key: string
+  name: string
+  lead: string
+  invitation: string
+  /** Địa điểm (từ VENUE trong .env), chỉ có trên trang của người được mời */
+  venue?: string
+}
+
+/** Dữ liệu do bước build gắn vào đúng trang này (xem vite.config.ts). Không có = thiệp chung. */
+interface PageData {
+  key?: string
+  name?: string
+  lead?: string
+  invitation?: string
+  venue?: string
+}
+
+function readPageData(): PageData {
   try {
-    return localStorage.getItem(KEY) === '1'
+    const raw = document.getElementById('invite-data')?.textContent
+    return raw ? (JSON.parse(raw) as PageData) : {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Thiệp của trang hiện tại. ?to=Tên (nếu có) ghi đè tên hiển thị.
+ * Không có dữ liệu thì dùng thiệp chung "Mời bạn".
+ */
+export function resolveInvitation(): Resolved {
+  const data = readPageData()
+
+  const raw = new URLSearchParams(location.search).get('to')?.trim().replace(/\s+/g, ' ') ?? ''
+  const fromQuery = [...raw].slice(0, 40).join('')
+  const name = fromQuery || data.name || ''
+
+  return {
+    key: data.key ?? 'home',
+    name: name || content.guestFallback,
+    lead: (fromQuery ? undefined : data.lead) ?? (name ? content.lead : content.leadFallback),
+    invitation: data.invitation ?? content.invitation,
+    venue: data.venue,
+  }
+}
+
+export function hasSeenIntro(key: string): boolean {
+  try {
+    return localStorage.getItem(KEY_PREFIX + key) === '1'
   } catch {
     return false
   }
 }
 
-export function markIntroSeen(): void {
+export function markIntroSeen(key: string): void {
   try {
-    localStorage.setItem(KEY, '1')
+    localStorage.setItem(KEY_PREFIX + key, '1')
   } catch {
     /* localStorage bị chặn (chế độ riêng tư...): bỏ qua, intro sẽ chạy lại lần sau */
   }
@@ -23,15 +71,8 @@ export function prefersReducedMotion(): boolean {
 }
 
 /** Intro chạy khi: không bật reduced-motion và (chưa xem, hoặc URL có ?intro). */
-export function shouldPlayIntro(): boolean {
+export function shouldPlayIntro(key: string): boolean {
   if (prefersReducedMotion()) return false
   if (new URLSearchParams(location.search).has('intro')) return true
-  return !hasSeenIntro()
-}
-
-/** Tên khách lấy từ ?to=, cắt tối đa 40 ký tự. React tự escape khi render. */
-export function readGuest(): { name: string; isFallback: boolean } {
-  const raw = new URLSearchParams(location.search).get('to')?.trim().replace(/\s+/g, ' ') ?? ''
-  const name = [...raw].slice(0, 40).join('')
-  return name ? { name, isFallback: false } : { name: content.guestFallback, isFallback: true }
+  return !hasSeenIntro(key)
 }

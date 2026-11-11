@@ -97,12 +97,14 @@ export const FxCanvas = forwardRef<FxApi, { enabled: boolean }>(function FxCanva
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const prevW = W
       W = window.innerWidth
       H = window.innerHeight
       canvas.width = Math.round(W * dpr)
       canvas.height = Math.round(H * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      makeSparks()
+      // Thanh địa chỉ trên mobile co giãn chỉ đổi chiều cao: giữ nguyên hạt sáng, tránh nháy
+      if (W !== prevW) makeSparks()
     }
     resize()
     addEventListener('resize', resize)

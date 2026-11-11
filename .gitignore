@@ -2,3 +2,8 @@ node_modules
 dist
 *.local
 .DS_Store
+
+# Danh sách khách + địa chỉ: không bao giờ commit
+.env
+.env.*
+!.env.example

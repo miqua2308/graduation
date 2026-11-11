@@ -10,10 +10,13 @@
   --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
   --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --card-w: max(260px, min(92vw, 440px, calc((100vh - 120px) * 5 / 7)));
+  /* 1 đơn vị = 1% bề rộng thiệp. Thay cho cqw để chạy được cả iOS < 16 / Android cũ. */
+  --u: calc(var(--card-w) / 100);
 }
-@supports (height: 100dvh) {
+/* svh = chiều cao khi thanh địa chỉ đang hiện: ổn định, thiệp không nhảy khi thanh co giãn */
+@supports (height: 100svh) {
   :root {
-    --card-w: max(260px, min(92vw, 440px, calc((100dvh - 120px) * 5 / 7)));
+    --card-w: max(260px, min(92vw, 440px, calc((100svh - 120px) * 5 / 7)));
   }
 }
 
@@ -35,11 +38,15 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation; /* bỏ độ trễ và zoom do chạm đúp */
 }
 
+/* Trong lúc intro: khoá cuộn, chặn kéo trang và pull-to-refresh trên mobile */
 html.intro-active,
 html.intro-active body {
   overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 /* ---------- Nền ---------- */
@@ -67,10 +74,11 @@ html.intro-active body {
   position: relative;
   z-index: 2;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh;
   display: grid;
   place-items: center;
   padding: max(24px, env(safe-area-inset-top)) 0 calc(88px + env(safe-area-inset-bottom));
+  overflow-x: hidden;
   overflow-x: clip;
 }
 
@@ -95,10 +103,9 @@ html.intro-active body {
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 5 / 7; /* nếu thêm nhiều mục, thiệp tự cao thêm */
+  min-height: calc(var(--card-w) * 1.4); /* tỉ lệ 5:7; nếu thêm nhiều mục, thiệp tự cao thêm */
   display: flex;
   flex-direction: column;
-  container-type: inline-size;
   color: var(--ink);
   will-change: transform;
   touch-action: pan-y;
@@ -145,21 +152,21 @@ html.intro-active body {
 
 .frame {
   position: absolute;
-  inset: 3cqw;
+  inset: calc(3 * var(--u));
   border: 1px solid var(--gold);
   border-radius: 2px;
 }
 .frame::before {
   content: '';
   position: absolute;
-  inset: 1.6cqw;
+  inset: calc(1.6 * var(--u));
   border: 1px solid rgba(201, 162, 75, 0.45);
 }
 
 .corner {
   position: absolute;
-  width: 13cqw;
-  height: 13cqw;
+  width: calc(13 * var(--u));
+  height: calc(13 * var(--u));
   color: var(--gold);
 }
 .corner svg {
@@ -168,20 +175,20 @@ html.intro-active body {
   height: 100%;
 }
 .corner-tl {
-  top: 3cqw;
-  left: 3cqw;
+  top: calc(3 * var(--u));
+  left: calc(3 * var(--u));
 }
 .corner-tr {
-  top: 3cqw;
-  right: 3cqw;
+  top: calc(3 * var(--u));
+  right: calc(3 * var(--u));
 }
 .corner-bl {
-  bottom: 3cqw;
-  left: 3cqw;
+  bottom: calc(3 * var(--u));
+  left: calc(3 * var(--u));
 }
 .corner-br {
-  bottom: 3cqw;
-  right: 3cqw;
+  bottom: calc(3 * var(--u));
+  right: calc(3 * var(--u));
 }
 .corner-tr svg {
   transform: scaleX(-1);
@@ -201,14 +208,14 @@ html.intro-active body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 9cqw 10cqw;
+  padding: calc(9 * var(--u)) calc(10 * var(--u));
   text-align: center;
 }
 
 .cap {
-  width: 11cqw;
+  width: calc(11 * var(--u));
   color: var(--gold);
-  margin-bottom: 2.2cqw;
+  margin-bottom: calc(2.2 * var(--u));
 }
 .cap svg {
   display: block;
@@ -217,47 +224,47 @@ html.intro-active body {
 }
 
 .headline {
-  margin-bottom: 5cqw;
+  margin-bottom: calc(5 * var(--u));
 }
 .title-small {
   margin: 0;
-  font: italic 600 6.5cqw/1 var(--font-display);
+  font: italic 600 calc(6.5 * var(--u))/1 var(--font-display);
   color: var(--gold-ink);
 }
 .title {
-  margin: 0.6cqw 0 0;
-  font: 600 13.5cqw/0.95 var(--font-display);
+  margin: calc(0.6 * var(--u)) 0 0;
+  font: 600 calc(13.5 * var(--u))/0.95 var(--font-display);
   letter-spacing: 0.01em;
   color: var(--ink);
 }
 
 .lead {
   margin: 0;
-  font: 400 max(13px, 4cqw) / 1.3 var(--font-body);
+  font: 400 max(13px, calc(4 * var(--u))) / 1.3 var(--font-body);
   letter-spacing: 0.04em;
   color: var(--ink-soft);
 }
 .name {
-  margin: 1cqw 0 1.4cqw;
+  margin: calc(1 * var(--u)) 0 calc(1.4 * var(--u));
   max-width: 100%;
-  font: italic 600 var(--name-size, 14cqw) / 1.05 var(--font-display);
+  font: italic 600 var(--name-size, calc(14 * var(--u))) / 1.05 var(--font-display);
   color: var(--gold-ink);
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
 .tail {
-  margin-bottom: 4.5cqw;
+  margin-bottom: calc(4.5 * var(--u));
 }
 .invitation {
   margin: 0;
-  font: 400 max(13px, 4cqw) / 1.3 var(--font-body);
+  font: 400 max(13px, calc(4 * var(--u))) / 1.3 var(--font-body);
   letter-spacing: 0.04em;
   color: var(--ink-soft);
 }
 .host {
-  margin: 1.2cqw 0 0;
-  font: 700 9cqw/1 var(--font-display);
+  margin: calc(1.2 * var(--u)) 0 0;
+  font: 700 calc(9 * var(--u))/1 var(--font-display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink);
@@ -269,7 +276,7 @@ html.intro-active body {
 .divider {
   position: relative;
   height: 1px;
-  margin: 0 auto 3.6cqw;
+  margin: 0 auto calc(3.6 * var(--u));
   width: 60%;
   background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
 }
@@ -288,10 +295,10 @@ html.intro-active body {
 .sections {
   margin: 0;
   display: grid;
-  gap: 3.2cqw;
+  gap: calc(3.2 * var(--u));
 }
 .section dt {
-  font: 600 max(11px, 3cqw) / 1 var(--font-body);
+  font: 600 max(11px, calc(3 * var(--u))) / 1 var(--font-body);
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--gold-ink);
@@ -301,13 +308,23 @@ html.intro-active body {
   margin: 0;
 }
 .section .value {
-  margin-top: 1.2cqw;
-  font: 600 max(18px, 7cqw) / 1.1 var(--font-display);
+  margin-top: calc(1.2 * var(--u));
+  font: 700 max(19px, calc(7 * var(--u))) / 1.15 var(--font-display);
+  /* Cormorant mặc định dùng số kiểu cổ (1 giống chữ I, số lên xuống lệch dòng): ép số thẳng hàng */
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'lnum' 1, 'tnum' 1;
   color: var(--ink);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+/* Địa chỉ dài: giảm cỡ chữ để xuống dòng gọn */
+.section .value.is-long {
+  font-size: max(16px, calc(5.4 * var(--u)));
+  line-height: 1.25;
 }
 .section .note {
-  margin-top: 1cqw;
-  font: 400 max(12px, 3.5cqw) / 1.4 var(--font-body);
+  margin-top: calc(1 * var(--u));
+  font: 400 max(12px, calc(3.5 * var(--u))) / 1.4 var(--font-body);
   color: var(--ink-soft);
   text-wrap: balance;
 }

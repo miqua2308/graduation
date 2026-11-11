@@ -32,6 +32,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Lấy từ Settings -> Secrets and variables -> Actions (không nằm trong repo)
+          INVITES: ${{ secrets.INVITES }}
+          VENUE: ${{ secrets.VENUE }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

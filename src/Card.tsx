@@ -1,6 +1,7 @@
 import { useEffect, type CSSProperties, type RefObject } from 'react'
 import gsap from 'gsap'
 import { content } from './content'
+import type { Resolved } from './storage'
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
@@ -32,17 +33,17 @@ function CapIcon() {
 
 interface Props {
   cardRef: RefObject<HTMLDivElement>
-  guest: { name: string; isFallback: boolean }
+  invite: Resolved
   tiltEnabled: boolean
   floating: boolean
   onTap: (x: number, y: number) => void
 }
 
-export function Card({ cardRef, guest, tiltEnabled, floating, onTap }: Props) {
+export function Card({ cardRef, invite, tiltEnabled, floating, onTap }: Props) {
   // Cỡ chữ tên tự co theo độ dài để không tràn thiệp
-  const len = [...guest.name].length
+  const len = [...invite.name].length
   const nameSize = Math.max(7.5, Math.min(15, 70 / (len * 0.5)))
-  const style = { '--name-size': `${nameSize.toFixed(2)}cqw` } as CSSProperties
+  const style = { '--name-size': `calc(${nameSize.toFixed(2)} * var(--u))` } as CSSProperties
 
   // Nghiêng 3D theo con trỏ (desktop) / ngón tay / con quay hồi chuyển (mobile)
   useEffect(() => {
@@ -117,8 +118,6 @@ export function Card({ cardRef, guest, tiltEnabled, floating, onTap }: Props) {
     }
   }, [cardRef, tiltEnabled])
 
-  const lead = guest.isFallback ? content.leadFallback : content.lead
-
   return (
     <div className="card-scene">
       <div className={`card-float${floating ? ' is-floating' : ''}`}>
@@ -147,14 +146,14 @@ export function Card({ cardRef, guest, tiltEnabled, floating, onTap }: Props) {
             </div>
 
             <p className="piece lead" data-piece="lead">
-              {lead}
+              {invite.lead}
             </p>
             <p className="piece name" data-piece="name">
-              {guest.name}
+              {invite.name}
             </p>
 
             <div className="piece tail" data-piece="tail">
-              <p className="invitation">{content.invitation}</p>
+              <p className="invitation">{invite.invitation}</p>
               <p className="host">{content.host}</p>
             </div>
 
@@ -163,13 +162,16 @@ export function Card({ cardRef, guest, tiltEnabled, floating, onTap }: Props) {
                 <i />
               </div>
               <dl className="sections">
-                {content.sections.map((s) => (
-                  <div className="section" key={s.id}>
-                    <dt>{s.label}</dt>
-                    <dd className="value">{s.value}</dd>
-                    {s.note && <dd className="note">{s.note}</dd>}
-                  </div>
-                ))}
+                {content.sections.map((s) => {
+                  const value = s.id === 'place' && invite.venue ? invite.venue : s.value
+                  return (
+                    <div className="section" key={s.id}>
+                      <dt>{s.label}</dt>
+                      <dd className={`value${[...value].length > 22 ? ' is-long' : ''}`}>{value}</dd>
+                      {s.note && <dd className="note">{s.note}</dd>}
+                    </div>
+                  )
+                })}
               </dl>
             </div>
           </div>

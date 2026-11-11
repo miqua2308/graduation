@@ -1,4 +1,5 @@
-// Toàn bộ nội dung thiệp nằm ở đây. Chỉ cần sửa file này, không phải đụng vào component.
+// Nội dung chung của thiệp. Danh sách người nhận và địa điểm KHÔNG nằm ở đây:
+// chúng nằm trong .env (INVITES, VENUE), xem .env.example và README.
 
 export interface InfoSection {
   id: string
@@ -10,7 +11,7 @@ export interface InfoSection {
 export const content = {
   host: 'Minh Quân',
 
-  // Tên khách mặc định khi link không có ?to=
+  // Tên khách mặc định khi link không có tên
   guestFallback: 'bạn',
   // "Mời bạn" + {tên}; khi không có tên thì "Mời" + "bạn" để không bị lặp chữ
   lead: 'Mời bạn',
@@ -21,6 +22,7 @@ export const content = {
   invitation: 'đến dự lễ tốt nghiệp của',
 
   // Thêm / sửa / xoá mục ở đây. Mỗi mục tự hiển thị trên thiệp theo thứ tự.
+  // Mục có id 'place' sẽ lấy giá trị từ VENUE trong .env nếu có.
   sections: [
     {
       id: 'time',

@@ -4,7 +4,7 @@ import { FxCanvas, type FxApi } from './Effects'
 import { Intro } from './Intro'
 import { playEntrance } from './entrance'
 import { content } from './content'
-import { markIntroSeen, prefersReducedMotion, readGuest, shouldPlayIntro } from './storage'
+import { markIntroSeen, prefersReducedMotion, resolveInvitation, shouldPlayIntro } from './storage'
 
 type Phase = 'intro' | 'card'
 
@@ -21,10 +21,10 @@ function useReducedMotion(): boolean {
 
 export default function App() {
   const reduced = useReducedMotion()
-  const guest = useMemo(readGuest, [])
+  const invite = useMemo(resolveInvitation, [])
   const cardRef = useRef<HTMLDivElement>(null)
   const fxRef = useRef<FxApi>(null)
-  const [phase, setPhase] = useState<Phase>(() => (shouldPlayIntro() ? 'intro' : 'card'))
+  const [phase, setPhase] = useState<Phase>(() => (shouldPlayIntro(invite.key) ? 'intro' : 'card'))
   const startedInCard = useRef(phase === 'card')
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function App() {
   }, [])
 
   const handleDone = () => {
-    markIntroSeen()
+    markIntroSeen(invite.key)
     setPhase('card')
   }
 
@@ -62,7 +62,7 @@ export default function App() {
       <main className="page">
         <Card
           cardRef={cardRef}
-          guest={guest}
+          invite={invite}
           tiltEnabled={phase === 'card' && !reduced}
           floating={phase === 'card' && !reduced}
           onTap={(x, y) => phase === 'card' && fxRef.current?.burst(x, y, 36)}
