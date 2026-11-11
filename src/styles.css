@@ -1,0 +1,524 @@
+:root {
+  --navy: #0b1b3a;
+  --navy-deep: #060f22;
+  --ivory: #f6f0e4;
+  --gold: #c9a24b;
+  --gold-bright: #e8c979;
+  --gold-ink: #7a5c16; /* vàng đậm cho chữ trên nền ngà: tương phản ≥ 5:1 */
+  --ink: #0b1b3a;
+  --ink-soft: #3a4863;
+  --font-display: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --card-w: max(260px, min(92vw, 440px, calc((100vh - 120px) * 5 / 7)));
+}
+@supports (height: 100dvh) {
+  :root {
+    --card-w: max(260px, min(92vw, 440px, calc((100dvh - 120px) * 5 / 7)));
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--navy-deep);
+  color: var(--ivory);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.intro-active,
+html.intro-active body {
+  overflow: hidden;
+}
+
+/* ---------- Nền ---------- */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 600px at 50% 18%, rgba(46, 86, 160, 0.38), transparent 70%),
+    radial-gradient(700px 500px at 85% 90%, rgba(201, 162, 75, 0.1), transparent 70%),
+    linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
+.backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(232, 201, 121, 0.16) 1px, transparent 1.4px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 0%, transparent 72%);
+}
+
+.page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) 0 calc(88px + env(safe-area-inset-bottom));
+  overflow-x: clip;
+}
+
+/* ---------- Thiệp ---------- */
+.card-scene {
+  width: var(--card-w);
+}
+
+.card-float.is-floating {
+  animation: floaty 7s ease-in-out infinite;
+}
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7; /* nếu thêm nhiều mục, thiệp tự cao thêm */
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  color: var(--ink);
+  will-change: transform;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Mọi "piece" đều là mảnh có thể được intro kéo thả: không đặt transform CSS lên chúng */
+.piece {
+  display: block;
+}
+
+/* Khi intro đang kéo thả, các mảnh chữ có nền ngà + viền màu con trỏ (như layer đang được chọn)
+   để không bị chìm trên nền navy. Hạ cờ is-loose khi mảnh đã vào đúng chỗ. */
+.content .piece {
+  border-radius: 4px;
+  outline: 1.5px solid transparent;
+  outline-offset: 5px;
+  transition:
+    background-color 0.35s ease,
+    box-shadow 0.35s ease,
+    outline-color 0.35s ease;
+}
+.content .piece.is-loose {
+  background-color: var(--ivory);
+  outline-color: var(--c, #8fb0ff);
+  box-shadow:
+    0 0 0 5px var(--ivory),
+    0 14px 30px -8px rgba(0, 0, 0, 0.6);
+}
+
+.paper {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .2  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    linear-gradient(160deg, #fbf7ee 0%, var(--ivory) 45%, #efe6d2 100%);
+  box-shadow:
+    0 40px 80px -30px rgba(0, 0, 0, 0.75),
+    0 18px 36px -18px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(232, 201, 121, 0.2);
+}
+
+.frame {
+  position: absolute;
+  inset: 3cqw;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+}
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 1.6cqw;
+  border: 1px solid rgba(201, 162, 75, 0.45);
+}
+
+.corner {
+  position: absolute;
+  width: 13cqw;
+  height: 13cqw;
+  color: var(--gold);
+}
+.corner svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.corner-tl {
+  top: 3cqw;
+  left: 3cqw;
+}
+.corner-tr {
+  top: 3cqw;
+  right: 3cqw;
+}
+.corner-bl {
+  bottom: 3cqw;
+  left: 3cqw;
+}
+.corner-br {
+  bottom: 3cqw;
+  right: 3cqw;
+}
+.corner-tr svg {
+  transform: scaleX(-1);
+}
+.corner-bl svg {
+  transform: scaleY(-1);
+}
+.corner-br svg {
+  transform: scale(-1, -1);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 9cqw 10cqw;
+  text-align: center;
+}
+
+.cap {
+  width: 11cqw;
+  color: var(--gold);
+  margin-bottom: 2.2cqw;
+}
+.cap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.headline {
+  margin-bottom: 5cqw;
+}
+.title-small {
+  margin: 0;
+  font: italic 600 6.5cqw/1 var(--font-display);
+  color: var(--gold-ink);
+}
+.title {
+  margin: 0.6cqw 0 0;
+  font: 600 13.5cqw/0.95 var(--font-display);
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.lead {
+  margin: 0;
+  font: 400 max(13px, 4cqw) / 1.3 var(--font-body);
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+.name {
+  margin: 1cqw 0 1.4cqw;
+  max-width: 100%;
+  font: italic 600 var(--name-size, 14cqw) / 1.05 var(--font-display);
+  color: var(--gold-ink);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.tail {
+  margin-bottom: 4.5cqw;
+}
+.invitation {
+  margin: 0;
+  font: 400 max(13px, 4cqw) / 1.3 var(--font-body);
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+.host {
+  margin: 1.2cqw 0 0;
+  font: 700 9cqw/1 var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.info {
+  width: 100%;
+}
+.divider {
+  position: relative;
+  height: 1px;
+  margin: 0 auto 3.6cqw;
+  width: 60%;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+}
+.divider i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--ivory);
+  border: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+
+.sections {
+  margin: 0;
+  display: grid;
+  gap: 3.2cqw;
+}
+.section dt {
+  font: 600 max(11px, 3cqw) / 1 var(--font-body);
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  padding-left: 0.26em;
+}
+.section dd {
+  margin: 0;
+}
+.section .value {
+  margin-top: 1.2cqw;
+  font: 600 max(18px, 7cqw) / 1.1 var(--font-display);
+  color: var(--ink);
+}
+.section .note {
+  margin-top: 1cqw;
+  font: 400 max(12px, 3.5cqw) / 1.4 var(--font-body);
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+
+/* ---------- Ánh kim + glare ---------- */
+.fx {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: 6px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.glare {
+  position: absolute;
+  width: 140%;
+  height: 140%;
+  left: -20%;
+  top: -20%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.32), transparent 55%);
+  mix-blend-mode: soft-light;
+  will-change: transform;
+}
+.sheen {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 35%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5) 50%, transparent);
+  mix-blend-mode: soft-light;
+  transform: translateX(-160%) skewX(-18deg);
+  animation: sheen 6s ease-in-out 1.2s infinite;
+}
+@keyframes sheen {
+  0%,
+  55% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(380%) skewX(-18deg);
+  }
+}
+
+/* ---------- Canvas hạt sáng / confetti ---------- */
+.fx-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* ---------- Intro ---------- */
+.intro-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+}
+.intro-status {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 18px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: max-content;
+  max-width: 90vw;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 201, 121, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font: 500 13px/1.2 var(--font-body);
+  color: var(--ivory);
+}
+.intro-spark {
+  color: var(--gold-bright);
+  display: inline-block;
+  animation: spin 2.4s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.intro-progress {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 64px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 160px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  border-radius: 2px;
+}
+.intro-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transform-origin: left center;
+}
+
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+}
+.cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+.cursor svg {
+  display: block;
+  margin: -2px 0 0 -3px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+}
+.cursor .tag {
+  position: absolute;
+  left: 13px;
+  top: 17px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--c);
+  color: var(--navy);
+  font: 600 11px/1.5 var(--font-body);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Nút ---------- */
+.btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(232, 201, 121, 0.5);
+  border-radius: 999px;
+  background: rgba(11, 27, 58, 0.72);
+  color: var(--ivory);
+  font: 500 13px/1 var(--font-body);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: auto;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+.btn:hover {
+  background: rgba(201, 162, 75, 0.22);
+  border-color: var(--gold-bright);
+}
+.btn:active {
+  transform: scale(0.96);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+.btn svg {
+  color: var(--gold-bright);
+}
+
+.btn-replay {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 50;
+  animation: pop-in 0.5s ease-out both;
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+}
+
+.btn-skip {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: max-content;
+}
+
+/* ---------- Giảm chuyển động ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .sheen,
+  .card-float.is-floating,
+  .intro-spark,
+  .btn-replay {
+    animation: none;
+  }
+  .sheen {
+    display: none;
+  }
+}
