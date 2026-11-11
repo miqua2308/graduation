@@ -19,19 +19,32 @@ interface Route {
   invitation?: string
 }
 
-function parseInvites(raw: string): Route[] {
+function parseInvites(input: string): Route[] {
+  // Chịu được kiểu dán hay gặp: dán cả dòng `INVITES="..."` từ file .env vào GitHub Secret,
+  // hoặc bọc cả khối trong dấu nháy.
+  const raw = input
+    .trim()
+    .replace(/^INVITES\s*=\s*/, '')
+    .replace(/^["']/, '')
+    .replace(/["']\s*$/, '')
+
   const seen = new Set<string>()
   return raw
     .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('#'))
-    .map((line) => {
+    .map((line, i) => ({ line: line.trim(), no: i + 1 }))
+    .filter(({ line }) => line && !line.startsWith('#'))
+    .map(({ line, no }) => {
       const [p = '', name = '', lead = '', invitation = ''] = line.split('|').map((s) => s.trim())
       const path = p.replace(/^\/+|\/+$/g, '').toLowerCase()
       if (!/^[a-z0-9][a-z0-9_-]*(\/[a-z0-9][a-z0-9_-]*)*$/.test(path)) {
-        throw new Error(`INVITES: đường dẫn không hợp lệ "${p}" (chỉ dùng a-z, 0-9, -, _ và /)`)
+        // Không in nội dung dòng: trên CI GitHub che giá trị secret thành *** và log có thể bị xem.
+        const bad = [...p].find((c) => !/[a-z0-9_\-/]/i.test(c))
+        const hint = bad ? ` Ký tự đầu tiên không hợp lệ: U+${bad.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0')}.` : ''
+        throw new Error(
+          `INVITES dòng ${no}: đường dẫn không hợp lệ (chỉ dùng a-z, 0-9, -, _ và /; mỗi dòng dạng "đường-dẫn | tên").${hint}`,
+        )
       }
-      if (seen.has(path)) throw new Error(`INVITES: đường dẫn bị trùng "${path}"`)
+      if (seen.has(path)) throw new Error(`INVITES dòng ${no}: đường dẫn bị trùng với một dòng trước đó`)
       seen.add(path)
       return { path, name: name || undefined, lead: lead || undefined, invitation: invitation || undefined }
     })
