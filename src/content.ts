@@ -31,6 +31,12 @@ export const content = {
       note: '13:00 là bắt đầu làm lễ rồi, nên bạn có thể đến tầm 11:00, 12:00 hoặc 17:00 nha',
     },
     {
+      // Lấy số từ PHONE trong .env; không có PHONE thì mục này tự ẩn
+      id: 'phone',
+      label: 'Liên hệ',
+      value: '',
+    },
+    {
       id: 'place',
       label: 'Địa điểm',
       value: 'Sẽ cập nhật sau',

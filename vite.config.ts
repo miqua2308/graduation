@@ -8,6 +8,7 @@ import react from '@vitejs/plugin-react'
  *
  *   INVITES  mỗi dòng một thiệp:  đường-dẫn | tên | lead (tuỳ chọn) | câu nối (tuỳ chọn)
  *   VENUE    địa điểm hiển thị trên thiệp:  tên | link bản đồ (tuỳ chọn)
+ *   PHONE    số điện thoại liên hệ (tuỳ chọn)
  *
  * Khi build, mỗi đường dẫn nhận một index.html riêng chỉ chứa dữ liệu của chính nó.
  * Các trang khác và file JS dùng chung không chứa tên ai hay địa chỉ.
@@ -113,7 +114,17 @@ const NOT_INVITED_HTML = `<!doctype html>
 </html>
 `
 
-function invitePages(routes: Route[], venue: Venue): Plugin {
+/** PHONE: chỉ nhận chữ số, khoảng trắng, dấu chấm, gạch nối và dấu + ở đầu. */
+function parsePhone(input: string | undefined): string | undefined {
+  const phone = cleanValue(input, 'PHONE')
+  if (!phone) return undefined
+  if (!/^\+?[0-9][0-9 .-]{5,18}[0-9]$/.test(phone)) {
+    throw new Error('PHONE: số điện thoại không hợp lệ (chỉ dùng chữ số, khoảng trắng, dấu chấm, gạch nối, dấu + ở đầu)')
+  }
+  return phone
+}
+
+function invitePages(routes: Route[], venue: Venue, phone: string | undefined): Plugin {
   const dataFor = (r: Route) => ({
     key: r.path,
     name: r.name,
@@ -121,6 +132,7 @@ function invitePages(routes: Route[], venue: Venue): Plugin {
     invitation: r.invitation,
     venue: venue.name || undefined,
     venueMap: venue.name ? venue.map : undefined,
+    phone,
   })
   const inject = (html: string, r: Route) =>
     html.replace(
@@ -170,6 +182,6 @@ export default defineConfig(({ mode }) => {
   }
   return {
     base: './',
-    plugins: [react(), invitePages(routes, parseVenue(env.VENUE))],
+    plugins: [react(), invitePages(routes, parseVenue(env.VENUE), parsePhone(env.PHONE))],
   }
 })

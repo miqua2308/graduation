@@ -79,6 +79,12 @@ function openMap(e: MouseEvent<HTMLAnchorElement>) {
     .to(dot, { top: -40, scaleX: 0.55, scaleY: 1.9, duration: 0.26, ease: 'power3.in' }, 0.34)
 }
 
+/** 0868104013 -> "0868 104 013"; số khác định dạng thì giữ nguyên như trong .env */
+function formatPhone(phone: string): string {
+  const d = phone.replace(/\D/g, '')
+  return /^0\d{9}$/.test(d) ? `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}` : phone
+}
+
 function PinIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -131,8 +137,8 @@ export function Card({ cardRef, invite, floating, spinEnabled }: Props) {
     const flip = flipRef.current
     if (!flip || !spinEnabled || spinning.current || prefersReducedMotion()) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
-    // Chạm vào địa điểm là để mở bản đồ, không xoay
-    if ((e.target as Element).closest('.has-map')) return
+    // Chạm vào địa điểm (mở bản đồ) hay số điện thoại (gọi) thì không xoay
+    if ((e.target as Element).closest('a, .has-map')) return
     spinning.current = true
     const front = flip.querySelector<HTMLElement>('.card')
     const back = flip.querySelector<HTMLElement>('.card-back')
@@ -213,8 +219,10 @@ export function Card({ cardRef, invite, floating, spinEnabled }: Props) {
                 </div>
                 <dl className="sections">
                   {content.sections.map((s) => {
+                    const isPhone = s.id === 'phone'
+                    if (isPhone && !invite.phone) return null
                     const isPlace = s.id === 'place' && !!invite.venue
-                    const value = isPlace ? invite.venue! : s.value
+                    const value = isPlace ? invite.venue! : isPhone ? formatPhone(invite.phone!) : s.value
                     const map = isPlace ? invite.venueMap : undefined
                     return (
                       <div className={`section${map ? ' has-map' : ''}`} key={s.id}>
@@ -222,6 +230,10 @@ export function Card({ cardRef, invite, floating, spinEnabled }: Props) {
                         <dd className={`value${[...value].length > 22 ? ' is-long' : ''}`}>
                           {map ? (
                             <a className="map-link" href={map} target="_blank" rel="noopener noreferrer" onClick={openMap}>
+                              {value}
+                            </a>
+                          ) : isPhone ? (
+                            <a className="tel-link" href={`tel:${invite.phone!.replace(/[^\d+]/g, '')}`}>
                               {value}
                             </a>
                           ) : (

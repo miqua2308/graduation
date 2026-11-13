@@ -12,6 +12,8 @@ export interface Resolved {
   venue?: string
   /** Link bản đồ của địa điểm (phần sau dấu | trong VENUE) */
   venueMap?: string
+  /** Số điện thoại liên hệ (PHONE trong .env), chỉ có trên trang của người được mời */
+  phone?: string
 }
 
 /** Dữ liệu do bước build gắn vào đúng trang này (xem vite.config.ts). Chỉ trang lời mời mới có. */
@@ -22,6 +24,7 @@ interface PageData {
   invitation?: string
   venue?: string
   venueMap?: string
+  phone?: string
 }
 
 function readPageData(): PageData {
@@ -52,6 +55,7 @@ export function resolveInvitation(): Resolved | null {
     invitation: data.invitation ?? content.invitation,
     venue: data.venue,
     venueMap: data.venue && data.venueMap?.startsWith('https://') ? data.venueMap : undefined,
+    phone: data.phone,
   }
 }
 

@@ -36,6 +36,7 @@ jobs:
           # Lấy từ Settings -> Secrets and variables -> Actions (không nằm trong repo)
           INVITES: ${{ secrets.INVITES }}
           VENUE: ${{ secrets.VENUE }}
+          PHONE: ${{ secrets.PHONE }}
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

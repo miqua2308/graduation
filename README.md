@@ -25,6 +25,7 @@ vuviet | Vũ Việt
 "
 
 VENUE="Nhà hàng Hoa Sen | https://maps.app.goo.gl/..."
+PHONE=0901234567
 ```
 
 - Đường dẫn chỉ dùng `a-z`, `0-9`, `-`, `_` và `/`. `cl/thiendat` cho ra link `https://<site>/cl/thiendat/`.
@@ -56,13 +57,14 @@ VENUE="Nhà hàng Hoa Sen | https://maps.app.goo.gl/..."
 
 1. Tạo repo **Public**, đẩy code lên nhánh `main` (commit cả `package-lock.json`, **không** commit `.env`).
 2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. **Settings → Secrets and variables → Actions → New repository secret**, tạo hai secret:
+3. **Settings → Secrets and variables → Actions → New repository secret**, tạo các secret:
    - `INVITES`: dán nguyên nội dung nhiều dòng (không cần dấu ngoặc kép), ví dụ
      ```
      ityu | Đoàn khoa ITYU | Mời | tham dự lễ tốt nghiệp của
      cl/thiendat | Thiên Đạt
      ```
    - `VENUE`: địa điểm tổ chức, dạng `tên | link bản đồ`.
+   - `PHONE`: số điện thoại liên hệ (tuỳ chọn), hiện ngay trên ô địa điểm, chạm để gọi.
 4. Mỗi lần push lên `main`, [workflow](.github/workflows/deploy.yml) tự build và deploy. Đổi secret xong thì vào
    **Actions → Deploy to GitHub Pages → Run workflow** để build lại.
 

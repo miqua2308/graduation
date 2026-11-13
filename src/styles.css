@@ -422,7 +422,8 @@ html.intro-active body {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
-.map-link {
+.map-link,
+.tel-link {
   color: inherit;
   text-decoration: underline;
   text-decoration-color: rgba(201, 162, 75, 0.7);
@@ -677,4 +678,10 @@ html.intro-active body {
   .sheen {
     display: none;
   }
+}
+
+.tel-link:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
