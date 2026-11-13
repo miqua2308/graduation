@@ -137,8 +137,8 @@ export function Card({ cardRef, invite, floating, spinEnabled }: Props) {
     const flip = flipRef.current
     if (!flip || !spinEnabled || spinning.current || prefersReducedMotion()) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
-    // Chạm vào địa điểm (mở bản đồ) hay số điện thoại (gọi) thì không xoay
-    if ((e.target as Element).closest('a, .has-map')) return
+    // Chạm vào địa điểm (mở bản đồ) hay số điện thoại thì không xoay
+    if ((e.target as Element).closest('a, .has-map, .phone')) return
     spinning.current = true
     const front = flip.querySelector<HTMLElement>('.card')
     const back = flip.querySelector<HTMLElement>('.card-back')
@@ -233,9 +233,8 @@ export function Card({ cardRef, invite, floating, spinEnabled }: Props) {
                               {value}
                             </a>
                           ) : isPhone ? (
-                            <a className="tel-link" href={`tel:${invite.phone!.replace(/[^\d+]/g, '')}`}>
-                              {value}
-                            </a>
+                            // Chữ thường, không phải link: chạm không có hiệu ứng gì, nhấn giữ để chép số
+                            <span className="phone">{value}</span>
                           ) : (
                             value
                           )}

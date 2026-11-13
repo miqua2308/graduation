@@ -64,7 +64,7 @@ PHONE=0901234567
      cl/thiendat | Thiên Đạt
      ```
    - `VENUE`: địa điểm tổ chức, dạng `tên | link bản đồ`.
-   - `PHONE`: số điện thoại liên hệ (tuỳ chọn), hiện ngay trên ô địa điểm, chạm để gọi.
+   - `PHONE`: số điện thoại liên hệ (tuỳ chọn), hiện ngay trên ô địa điểm.
 4. Mỗi lần push lên `main`, [workflow](.github/workflows/deploy.yml) tự build và deploy. Đổi secret xong thì vào
    **Actions → Deploy to GitHub Pages → Run workflow** để build lại.
 

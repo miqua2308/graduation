@@ -422,8 +422,7 @@ html.intro-active body {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
-.map-link,
-.tel-link {
+.map-link {
   color: inherit;
   text-decoration: underline;
   text-decoration-color: rgba(201, 162, 75, 0.7);
@@ -680,8 +679,8 @@ html.intro-active body {
   }
 }
 
-.tel-link:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-  border-radius: 2px;
+/* Số điện thoại: chữ thường, cho phép nhấn giữ để chọn/chép (thiệp mặc định chặn chọn chữ) */
+.phone {
+  user-select: text;
+  -webkit-user-select: text;
 }
