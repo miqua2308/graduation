@@ -24,12 +24,13 @@ cl/thiendat | Thiên Đạt
 vuviet | Vũ Việt
 "
 
-VENUE=Nhà hàng Hoa Sen, 123 Nguyễn Văn Cừ, Q.5, TP.HCM
+VENUE="Nhà hàng Hoa Sen | https://maps.app.goo.gl/..."
 ```
 
 - Đường dẫn chỉ dùng `a-z`, `0-9`, `-`, `_` và `/`. `cl/thiendat` cho ra link `https://<site>/cl/thiendat/`.
 - Bỏ trống tên thì thiệp ghi "Mời bạn". `lead` mặc định "Mời bạn", câu nối mặc định "đến dự lễ tốt nghiệp của".
-- `VENUE` để trống thì thiệp ghi "Sẽ cập nhật sau".
+- `VENUE` dạng `tên | link bản đồ`. Có link thì bấm vào địa điểm trên thiệp, mục đó nổi lên rồi mở bản đồ.
+  Link là tuỳ chọn (phải bắt đầu bằng `https://`). Để trống `VENUE` thì thiệp ghi "Sẽ cập nhật sau".
 - Thêm người mới: thêm một dòng vào `INVITES`, cập nhật secret trên GitHub (bên dưới), chạy lại workflow.
 
 ### Mức bảo mật thực tế
@@ -59,7 +60,7 @@ VENUE=Nhà hàng Hoa Sen, 123 Nguyễn Văn Cừ, Q.5, TP.HCM
      ityu | Đoàn khoa ITYU | Mời | tham dự lễ tốt nghiệp của
      cl/thiendat | Thiên Đạt
      ```
-   - `VENUE`: địa chỉ tổ chức.
+   - `VENUE`: địa điểm tổ chức, dạng `tên | link bản đồ`.
 4. Mỗi lần push lên `main`, [workflow](.github/workflows/deploy.yml) tự build và deploy. Đổi secret xong thì vào
    **Actions → Deploy to GitHub Pages → Run workflow** để build lại.
 

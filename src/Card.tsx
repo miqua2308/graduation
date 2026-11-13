@@ -1,7 +1,51 @@
-import { useEffect, type CSSProperties, type RefObject } from 'react'
+import { useEffect, type CSSProperties, type MouseEvent, type RefObject } from 'react'
 import gsap from 'gsap'
 import { content } from './content'
-import type { Resolved } from './storage'
+import { prefersReducedMotion, type Resolved } from './storage'
+
+/** Bấm vào địa điểm: mục nổi lên khỏi thiệp rồi mới chuyển sang bản đồ. */
+function openMap(e: MouseEvent<HTMLAnchorElement>) {
+  // Ctrl/Cmd/Shift-click, chuột giữa, reduced-motion: để trình duyệt xử lý link như bình thường
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || prefersReducedMotion()) return
+  const link = e.currentTarget
+  const section = link.closest<HTMLElement>('.section')
+  if (!section) return
+  e.preventDefault()
+  if (section.classList.contains('is-lifting')) return
+  section.classList.add('is-lifting')
+
+  const reset = () => {
+    section.classList.remove('is-lifting')
+    gsap.set(section, { clearProps: 'transform,boxShadow,backgroundColor,zIndex' })
+  }
+  gsap
+    .timeline({
+      onComplete: () => {
+        location.assign(link.href)
+        // Quay lại bằng nút Back (bfcache): trả mục về chỗ cũ
+        gsap.delayedCall(1, reset)
+      },
+    })
+    .set(section, { zIndex: 6 })
+    .to(section, {
+      y: -14,
+      scale: 1.08,
+      backgroundColor: 'rgba(255, 252, 244, 1)',
+      boxShadow: '0 18px 36px -12px rgba(11, 27, 58, 0.45), 0 0 0 1px rgba(201, 162, 75, 0.7)',
+      duration: 0.38,
+      ease: 'back.out(2.2)',
+    })
+    .to(section, { y: -18, scale: 1.1, duration: 0.22, ease: 'sine.inOut' })
+}
+
+function PinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </svg>
+  )
+}
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
@@ -163,11 +207,27 @@ export function Card({ cardRef, invite, tiltEnabled, floating, onTap }: Props) {
               </div>
               <dl className="sections">
                 {content.sections.map((s) => {
-                  const value = s.id === 'place' && invite.venue ? invite.venue : s.value
+                  const isPlace = s.id === 'place' && !!invite.venue
+                  const value = isPlace ? invite.venue! : s.value
+                  const map = isPlace ? invite.venueMap : undefined
                   return (
-                    <div className="section" key={s.id}>
+                    <div className={`section${map ? ' has-map' : ''}`} key={s.id}>
                       <dt>{s.label}</dt>
-                      <dd className={`value${[...value].length > 22 ? ' is-long' : ''}`}>{value}</dd>
+                      <dd className={`value${[...value].length > 22 ? ' is-long' : ''}`}>
+                        {map ? (
+                          <a className="map-link" href={map} rel="noopener" onClick={openMap}>
+                            {value}
+                          </a>
+                        ) : (
+                          value
+                        )}
+                      </dd>
+                      {map && (
+                        <dd className="map-hint" aria-hidden="true">
+                          <PinIcon />
+                          Chạm để xem bản đồ
+                        </dd>
+                      )}
                       {s.note && <dd className="note">{s.note}</dd>}
                     </div>
                   )

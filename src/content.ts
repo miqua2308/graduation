@@ -27,8 +27,8 @@ export const content = {
     {
       id: 'time',
       label: 'Thời gian',
-      value: '13:00 · Ngày 29/11',
-      note: 'Bạn có thể đến sớm lúc 12:00 hoặc chiều lúc 17:00',
+      value: '13:00 – 16:30 · 29/11',
+      note: 'Bạn có thể đến tầm 11:00, 12:00 hoặc 17:00',
     },
     {
       id: 'place',

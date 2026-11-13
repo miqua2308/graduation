@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react'
  * Danh sách người nhận + địa điểm đọc từ .env (local) hoặc GitHub Secrets (CI), KHÔNG nằm trong repo.
  *
  *   INVITES  mỗi dòng một thiệp:  đường-dẫn | tên | lead (tuỳ chọn) | câu nối (tuỳ chọn)
- *   VENUE    địa điểm hiển thị trên thiệp
+ *   VENUE    địa điểm hiển thị trên thiệp:  tên | link bản đồ (tuỳ chọn)
  *
  * Khi build, mỗi đường dẫn nhận một index.html riêng chỉ chứa dữ liệu của chính nó.
  * Các trang khác và file JS dùng chung không chứa tên ai hay địa chỉ.
@@ -60,14 +60,31 @@ function cleanValue(input: string | undefined, name: string): string {
     .trim()
 }
 
-function invitePages(routes: Route[], venue: string): Plugin {
+interface Venue {
+  name: string
+  map?: string
+}
+
+/** VENUE dạng `tên địa điểm | link bản đồ (tuỳ chọn)`. */
+function parseVenue(input: string | undefined): Venue {
+  const [name = '', map = ''] = cleanValue(input, 'VENUE')
+    .split('|')
+    .map((s) => s.trim())
+  if (map && !/^https:\/\/\S+$/.test(map)) {
+    throw new Error('VENUE: link bản đồ (sau dấu |) phải bắt đầu bằng https:// và không có khoảng trắng')
+  }
+  return { name, map: map || undefined }
+}
+
+function invitePages(routes: Route[], venue: Venue): Plugin {
+  // Địa chỉ chỉ có trong trang của người được mời, không có ở trang chủ công khai
   const dataFor = (r?: Route) => ({
     key: r?.path ?? 'home',
     name: r?.name,
     lead: r?.lead,
     invitation: r?.invitation,
-    // Địa chỉ chỉ có trong trang của người được mời, không có ở trang chủ công khai
-    venue: r && venue ? venue : undefined,
+    venue: r && venue.name ? venue.name : undefined,
+    venueMap: r && venue.name ? venue.map : undefined,
   })
   const inject = (html: string, r?: Route) =>
     html.replace(
@@ -118,6 +135,6 @@ export default defineConfig(({ mode }) => {
   }
   return {
     base: './',
-    plugins: [react(), invitePages(routes, cleanValue(env.VENUE, 'VENUE'))],
+    plugins: [react(), invitePages(routes, parseVenue(env.VENUE))],
   }
 })

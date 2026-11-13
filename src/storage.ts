@@ -10,6 +10,8 @@ export interface Resolved {
   invitation: string
   /** Địa điểm (từ VENUE trong .env), chỉ có trên trang của người được mời */
   venue?: string
+  /** Link bản đồ của địa điểm (phần sau dấu | trong VENUE) */
+  venueMap?: string
 }
 
 /** Dữ liệu do bước build gắn vào đúng trang này (xem vite.config.ts). Không có = thiệp chung. */
@@ -19,6 +21,7 @@ interface PageData {
   lead?: string
   invitation?: string
   venue?: string
+  venueMap?: string
 }
 
 function readPageData(): PageData {
@@ -47,6 +50,7 @@ export function resolveInvitation(): Resolved {
     lead: (fromQuery ? undefined : data.lead) ?? (name ? content.lead : content.leadFallback),
     invitation: data.invitation ?? content.invitation,
     venue: data.venue,
+    venueMap: data.venue && data.venueMap?.startsWith('https://') ? data.venueMap : undefined,
   }
 }
 

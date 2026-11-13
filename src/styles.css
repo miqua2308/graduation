@@ -329,6 +329,54 @@ html.intro-active body {
   text-wrap: balance;
 }
 
+/* Địa điểm có link bản đồ: cả mục bấm được, bấm vào thì nổi lên (Card.tsx · openMap) */
+.section.has-map {
+  position: relative;
+  margin: calc(-0.6 * var(--u)) calc(-3 * var(--u));
+  padding: calc(1.4 * var(--u)) calc(3 * var(--u));
+  border-radius: calc(2 * var(--u));
+  transition: background-color 0.2s ease;
+  will-change: transform;
+}
+.section.has-map:hover {
+  background-color: rgba(201, 162, 75, 0.09);
+}
+.section.has-map:has(.map-link:focus-visible) {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.map-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(201, 162, 75, 0.7);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Phủ link lên toàn bộ mục để chạm chỗ nào cũng mở bản đồ */
+.map-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  cursor: pointer;
+}
+.section .map-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  margin-top: calc(1.2 * var(--u));
+  font: 600 max(10px, calc(2.7 * var(--u))) / 1 var(--font-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+}
+.map-hint svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
 /* ---------- Ánh kim + glare ---------- */
 .fx {
   position: absolute;
