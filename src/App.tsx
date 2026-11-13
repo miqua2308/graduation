@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Card } from './Card'
 import { FxCanvas, type FxApi } from './Effects'
 import { Intro } from './Intro'
 import { playEntrance } from './entrance'
 import { content } from './content'
-import { markIntroSeen, prefersReducedMotion, resolveInvitation, shouldPlayIntro } from './storage'
+import { markIntroSeen, prefersReducedMotion, shouldPlayIntro, type Resolved } from './storage'
 
 type Phase = 'intro' | 'card'
 
@@ -19,9 +19,8 @@ function useReducedMotion(): boolean {
   return reduced
 }
 
-export default function App() {
+export default function App({ invite }: { invite: Resolved }) {
   const reduced = useReducedMotion()
-  const invite = useMemo(resolveInvitation, [])
   const cardRef = useRef<HTMLDivElement>(null)
   const fxRef = useRef<FxApi>(null)
   const [phase, setPhase] = useState<Phase>(() => (shouldPlayIntro(invite.key) ? 'intro' : 'card'))
@@ -63,9 +62,8 @@ export default function App() {
         <Card
           cardRef={cardRef}
           invite={invite}
-          tiltEnabled={phase === 'card' && !reduced}
           floating={phase === 'card' && !reduced}
-          onTap={(x, y) => phase === 'card' && fxRef.current?.burst(x, y, 36)}
+          spinEnabled={phase === 'card' && !reduced}
         />
       </main>
 

@@ -87,21 +87,69 @@ html.intro-active body {
   width: var(--card-w);
 }
 
+/* Lơ lửng: nhấp nhô và nghiêng rất nhẹ theo nhịp chậm, không phụ thuộc con trỏ */
 .card-float.is-floating {
-  animation: floaty 7s ease-in-out infinite;
+  animation: floaty 8s ease-in-out infinite;
 }
 @keyframes floaty {
   0%,
   100% {
-    transform: translateY(0);
+    transform: perspective(1400px) translateY(0) rotateX(1deg) rotateY(-1.5deg);
   }
   50% {
-    transform: translateY(-7px);
+    transform: perspective(1400px) translateY(-9px) rotateX(-1deg) rotateY(1.5deg);
   }
+}
+
+/* Lớp xoay khi chạm (Card.tsx · spin): mặt trước là .card, mặt sau là .card-back */
+.card-flip {
+  position: relative;
+  transform-style: preserve-3d;
+}
+.card-back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  visibility: hidden; /* chỉ hiện trong lúc xoay (Card.tsx · spin) */
+  pointer-events: none;
+}
+
+/* Đốm sáng khi mở bản đồ (Card.tsx · openMap): thiệp thu lại thành đốm này rồi bay lên */
+.light-dot {
+  position: fixed;
+  z-index: 50;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, #fff 0%, #fff6dc 30%, var(--gold-bright) 60%, rgba(232, 201, 121, 0) 72%);
+  box-shadow:
+    0 0 18px 6px rgba(232, 201, 121, 0.75),
+    0 0 46px 18px rgba(232, 201, 121, 0.3);
+}
+/* Logo in chìm: bóng sáng phía dưới + bóng tối phía trên tạo cảm giác ép lõm vào giấy.
+   (filter đặt ở lớp cha vì filter trên chính phần tử có mask sẽ bị mask cắt mất) */
+.back-emboss {
+  position: relative;
+  width: 62%;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85)) drop-shadow(0 -1px 0 rgba(122, 92, 22, 0.28));
+}
+.back-logo {
+  aspect-ratio: 1;
+  background: linear-gradient(160deg, #d9b968 0%, var(--gold) 45%, #a8842f 100%);
+  opacity: 0.78;
+  -webkit-mask: var(--logo) center / contain no-repeat;
+  mask: var(--logo) center / contain no-repeat;
 }
 
 .card {
   position: relative;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   width: 100%;
   min-height: calc(var(--card-w) * 1.4); /* tỉ lệ 5:7; nếu thêm nhiều mục, thiệp tự cao thêm */
   display: flex;
@@ -135,6 +183,30 @@ html.intro-active body {
   box-shadow:
     0 0 0 5px var(--ivory),
     0 14px 30px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* Intro bước 1: element đang được AI "tạo" (Intro.tsx) — khung nét đứt màu AI + vệt sáng quét qua */
+.content .piece.is-generating {
+  position: relative;
+  outline-style: dashed;
+  outline-color: #8fb0ff;
+}
+.piece.is-generating::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 25%, rgba(143, 176, 255, 0.55) 50%, transparent 75%) 0 0 / 250% 100%;
+  animation: gen-shimmer 0.5s linear infinite;
+}
+@keyframes gen-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
 }
 
 .paper {
@@ -329,17 +401,22 @@ html.intro-active body {
   text-wrap: balance;
 }
 
-/* Địa điểm có link bản đồ: cả mục bấm được, bấm vào thì nổi lên (Card.tsx · openMap) */
+/* Địa điểm có link bản đồ: cả mục bấm được, mở bản đồ ở tab mới (Card.tsx · openMap) */
 .section.has-map {
   position: relative;
   margin: calc(-0.6 * var(--u)) calc(-3 * var(--u));
   padding: calc(1.4 * var(--u)) calc(3 * var(--u));
   border-radius: calc(2 * var(--u));
   transition: background-color 0.2s ease;
-  will-change: transform;
 }
-.section.has-map:hover {
-  background-color: rgba(201, 162, 75, 0.09);
+/* Chỉ tô nền khi rê chuột thật; trên điện thoại :hover bị "dính" sau khi chạm */
+@media (hover: hover) {
+  .section.has-map:hover {
+    background-color: rgba(201, 162, 75, 0.09);
+  }
+}
+.section.has-map:active {
+  background-color: rgba(201, 162, 75, 0.14);
 }
 .section.has-map:has(.map-link:focus-visible) {
   outline: 2px solid var(--gold);
@@ -395,6 +472,19 @@ html.intro-active body {
   background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.32), transparent 55%);
   mix-blend-mode: soft-light;
   will-change: transform;
+  /* Đốm sáng tự trôi chậm trên mặt giấy, lệch nhịp với floaty cho đỡ lặp */
+  animation: glare-drift 13s ease-in-out infinite alternate;
+}
+@keyframes glare-drift {
+  0% {
+    transform: translate(-14%, -10%);
+  }
+  50% {
+    transform: translate(10%, -4%);
+  }
+  100% {
+    transform: translate(4%, 12%);
+  }
 }
 .sheen {
   position: absolute;
@@ -578,6 +668,7 @@ html.intro-active body {
 /* ---------- Giảm chuyển động ---------- */
 @media (prefers-reduced-motion: reduce) {
   .sheen,
+  .glare,
   .card-float.is-floating,
   .intro-spark,
   .btn-replay {

@@ -14,7 +14,7 @@ export interface Resolved {
   venueMap?: string
 }
 
-/** Dữ liệu do bước build gắn vào đúng trang này (xem vite.config.ts). Không có = thiệp chung. */
+/** Dữ liệu do bước build gắn vào đúng trang này (xem vite.config.ts). Chỉ trang lời mời mới có. */
 interface PageData {
   key?: string
   name?: string
@@ -35,17 +35,18 @@ function readPageData(): PageData {
 
 /**
  * Thiệp của trang hiện tại. ?to=Tên (nếu có) ghi đè tên hiển thị.
- * Không có dữ liệu thì dùng thiệp chung "Mời bạn".
+ * Không phải trang lời mời (không có dữ liệu) thì trả về null: không hiện thiệp.
  */
-export function resolveInvitation(): Resolved {
+export function resolveInvitation(): Resolved | null {
   const data = readPageData()
+  if (!data.key) return null
 
   const raw = new URLSearchParams(location.search).get('to')?.trim().replace(/\s+/g, ' ') ?? ''
   const fromQuery = [...raw].slice(0, 40).join('')
   const name = fromQuery || data.name || ''
 
   return {
-    key: data.key ?? 'home',
+    key: data.key,
     name: name || content.guestFallback,
     lead: (fromQuery ? undefined : data.lead) ?? (name ? content.lead : content.leadFallback),
     invitation: data.invitation ?? content.invitation,

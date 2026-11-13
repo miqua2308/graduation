@@ -32,10 +32,22 @@ const SLOTS: Array<[number, number]> = [
   [0.32, 0.36], [0.7, 0.34], [0.34, 0.68], [0.66, 0.64],
 ]
 
+// Bước 1: con trỏ AI "tạo" lần lượt từng element tại chỗ tản mát của nó
+const AI = 1 // chỉ số con trỏ 'AI' trong CURSORS
+const GEN_START = 0.3
+const GEN_STEP = 0.1 // khoảng cách giữa hai element được tạo
+const GEN_REVEAL = 0.34 // thời gian một element hiện hình
+// Bước 2 (kéo về đúng chỗ) bắt đầu khi element cuối vừa tạo xong
+const ARRANGE_AT = GEN_START + GEN_STEP * 11 + GEN_REVEAL + 0.1
+
+// Các giá trị thời gian bên dưới viết theo nhịp gốc, rồi cả timeline chạy nhanh hơn SPEED lần.
+// 1.45: kể cả bước "AI tạo element", toàn bộ intro (~6 giây) vẫn ngắn hơn bản cũ (~6.8 giây) khoảng 12%.
+const SPEED = 1.45
+
 const STATUS: Array<[number, string]> = [
   [0, 'Đang lên ý tưởng…'],
-  [1.6, 'Sắp xếp bố cục…'],
-  [3.4, 'Thêm họa tiết…'],
+  [ARRANGE_AT, 'Sắp xếp bố cục…'],
+  [ARRANGE_AT + 1.8, 'Thêm họa tiết…'],
 ]
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
@@ -115,14 +127,53 @@ export function Intro({ cardRef, onReveal, onDone }: Props) {
         onComplete: () => cbRef.current.onDone(),
       })
       tlRef.current = tl
-      if (fastRef.current) tl.timeScale(7)
+      tl.timeScale(fastRef.current ? 7 : SPEED)
 
-      tl.to(all, { opacity: 1, duration: 0.5, stagger: 0.04, ease: 'power1.out' }, 0)
-      tl.to(curs, { opacity: 1, duration: 0.3, stagger: 0.08 }, 0)
+      // ---- Bước 1: AI tạo element ----
+      const ai = curs[AI]
+      tl.to(ai, { opacity: 1, duration: 0.25 }, 0)
+      order.forEach((key, i) => {
+        const d = info.get(key)!
+        const el = els.get(key)!
+        const at = GEN_START + i * GEN_STEP
+        // Con trỏ AI lướt tới chỗ element sắp xuất hiện
+        tl.to(ai, { x: d.cx + d.sx + d.gx, y: d.cy + d.sy + d.gy, duration: 0.14, ease: 'power2.out' }, at - 0.12)
+        tl.call(setStatus, [`AI đang tạo element ${i + 1}/${order.length}…`], at)
+        tl.call(() => el.classList.add('is-generating'), [], at)
+        // Hiện hình: "vẽ" từ trái sang phải, từ nhoè thành nét
+        tl.fromTo(
+          el,
+          { opacity: 0, filter: 'blur(6px)', clipPath: 'inset(0% 100% 0% 0%)' },
+          {
+            opacity: 1,
+            filter: 'blur(0px)',
+            clipPath: 'inset(0% 0% 0% 0%)',
+            duration: GEN_REVEAL,
+            ease: 'power2.out',
+            immediateRender: false,
+          },
+          at,
+        )
+        tl.call(
+          () => {
+            el.classList.remove('is-generating')
+            gsap.set(el, { clearProps: 'filter,clipPath' })
+          },
+          [],
+          at + GEN_REVEAL + 0.08,
+        )
+      })
+
+      // ---- Bước 2: các con trỏ kéo element về đúng chỗ ----
+      tl.to(
+        curs.filter((_, i) => i !== AI),
+        { opacity: 1, duration: 0.3, stagger: 0.08 },
+        ARRANGE_AT - 0.3,
+      )
 
       QUEUES.forEach((queue, ci) => {
         const cur = curs[ci]
-        let t = START_AT[ci]
+        let t = ARRANGE_AT + START_AT[ci]
         queue.forEach((key) => {
           const d = info.get(key)!
           const el = els.get(key)!
@@ -181,9 +232,9 @@ export function Intro({ cardRef, onReveal, onDone }: Props) {
       tlRef.current?.kill()
       tlRef.current = null
       gsap.killTweensOf([...all, ...curs, card, fx])
-      gsap.set(all, { clearProps: 'opacity,transform' })
+      gsap.set(all, { clearProps: 'opacity,transform,filter,clipPath' })
       all.forEach((el) => {
-        el.classList.remove('is-loose')
+        el.classList.remove('is-loose', 'is-generating')
         el.style.removeProperty('--c')
       })
       if (fx) gsap.set(fx, { clearProps: 'opacity' })

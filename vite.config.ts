@@ -76,17 +76,53 @@ function parseVenue(input: string | undefined): Venue {
   return { name, map: map || undefined }
 }
 
+/**
+ * Trang cho đường dẫn không phải lời mời (trang chủ, link sai): tĩnh, không tải app, không chứa dữ liệu.
+ * Không dùng đường dẫn tương đối vì 404.html được GitHub Pages trả về ở mọi độ sâu.
+ */
+const NOT_INVITED_HTML = `<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B1B3A">
+<title>Thư mời tốt nghiệp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400&family=Cormorant+Garamond:wght@600&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid; place-items: center; padding: 24px; box-sizing: border-box;
+    background: radial-gradient(800px 500px at 50% 20%, #1c3566, #0b1b3a 60%, #060f22);
+    color: #f6f0e4; text-align: center;
+    font: 400 16px/1.6 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  main { max-width: 340px; }
+  h1 { margin: 0 0 12px; font: 600 30px/1.2 'Cormorant Garamond', Georgia, 'Times New Roman', serif; color: #e8c979; }
+  p { margin: 0; color: rgba(246, 240, 228, 0.78); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Thư mời tốt nghiệp</h1>
+  <p>Mỗi thiệp được gửi riêng cho từng người. Bạn hãy mở đúng đường link đã nhận nhé.</p>
+</main>
+</body>
+</html>
+`
+
 function invitePages(routes: Route[], venue: Venue): Plugin {
-  // Địa chỉ chỉ có trong trang của người được mời, không có ở trang chủ công khai
-  const dataFor = (r?: Route) => ({
-    key: r?.path ?? 'home',
-    name: r?.name,
-    lead: r?.lead,
-    invitation: r?.invitation,
-    venue: r && venue.name ? venue.name : undefined,
-    venueMap: r && venue.name ? venue.map : undefined,
+  const dataFor = (r: Route) => ({
+    key: r.path,
+    name: r.name,
+    lead: r.lead,
+    invitation: r.invitation,
+    venue: venue.name || undefined,
+    venueMap: venue.name ? venue.map : undefined,
   })
-  const inject = (html: string, r?: Route) =>
+  const inject = (html: string, r: Route) =>
     html.replace(
       '</head>',
       `<script id="invite-data" type="application/json">${JSON.stringify(dataFor(r)).replace(/</g, '\\u003c')}</script>\n  </head>`,
@@ -103,7 +139,8 @@ function invitePages(routes: Route[], venue: Venue): Plugin {
       if (!ctx.server) return html
       const url = (ctx.originalUrl ?? ctx.path).split('?')[0].replace(/index\.html$/, '')
       const joined = url.split('/').filter(Boolean).join('/')
-      return inject(html, routes.find((r) => r.path === joined))
+      const route = routes.find((r) => r.path === joined)
+      return route ? inject(html, route) : NOT_INVITED_HTML
     },
     // Build: nhân bản trang cho từng đường dẫn, mỗi trang một bộ dữ liệu riêng
     closeBundle() {
@@ -115,11 +152,9 @@ function invitePages(routes: Route[], venue: Venue): Plugin {
         mkdirSync(dir, { recursive: true })
         writeFileSync(join(dir, 'index.html'), page)
       }
-      // 404: chuyển về trang chủ (tài nguyên phụ thuộc base của repo nên không dùng lại trang chính)
-      writeFileSync(
-        join(outDir, '404.html'),
-        '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=./"><title>Thư mời</title><a href="./">Về trang thiệp</a>',
-      )
+      // Không có trang chủ: gốc site và mọi link sai chỉ hiện lời nhắc mở đúng link đã nhận
+      writeFileSync(join(outDir, 'index.html'), NOT_INVITED_HTML)
+      writeFileSync(join(outDir, '404.html'), NOT_INVITED_HTML)
     },
   }
 }
@@ -131,7 +166,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const routes = parseInvites(env.INVITES ?? '')
   if (routes.length === 0) {
-    console.warn('\n[invite] Chưa có INVITES (.env hoặc GitHub Secret): mọi link sẽ hiển thị thiệp chung.\n')
+    console.warn('\n[invite] Chưa có INVITES (.env hoặc GitHub Secret): chưa có thiệp nào, mọi link chỉ hiện lời nhắc mở đúng link.\n')
   }
   return {
     base: './',

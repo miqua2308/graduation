@@ -28,7 +28,7 @@ export const content = {
       id: 'time',
       label: 'Thời gian',
       value: '13:00 – 16:30 · 29/11',
-      note: 'Bạn có thể đến tầm 11:00, 12:00 hoặc 17:00',
+      note: '13:00 là bắt đầu làm lễ rồi, nên bạn có thể đến tầm 11:00, 12:00 hoặc 17:00 nha',
     },
     {
       id: 'place',
