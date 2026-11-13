@@ -41,8 +41,10 @@ const GEN_REVEAL = 0.34 // thời gian một element hiện hình
 const ARRANGE_AT = GEN_START + GEN_STEP * 11 + GEN_REVEAL + 0.1
 
 // Các giá trị thời gian bên dưới viết theo nhịp gốc, rồi cả timeline chạy nhanh hơn SPEED lần.
-// 1.45: kể cả bước "AI tạo element", toàn bộ intro (~6 giây) vẫn ngắn hơn bản cũ (~6.8 giây) khoảng 12%.
+// 1.45: kể cả bước "AI tạo element", toàn bộ intro (~5.6 giây) vẫn ngắn hơn bản cũ (~6.8 giây).
 const SPEED = 1.45
+// Riêng bước kéo xếp element chạy nhanh thêm 10%
+const ARRANGE_SPEED = 1.1
 
 const STATUS: Array<[number, string]> = [
   [0, 'Đang lên ý tưởng…'],
@@ -173,13 +175,13 @@ export function Intro({ cardRef, onReveal, onDone }: Props) {
 
       QUEUES.forEach((queue, ci) => {
         const cur = curs[ci]
-        let t = ARRANGE_AT + START_AT[ci]
+        let t = ARRANGE_AT + START_AT[ci] / ARRANGE_SPEED
         queue.forEach((key) => {
           const d = info.get(key)!
           const el = els.get(key)!
           const small = key.startsWith('c-')
-          const approach = small ? 0.5 : 0.65
-          const drag = small ? 0.7 : 0.85
+          const approach = (small ? 0.5 : 0.65) / ARRANGE_SPEED
+          const drag = (small ? 0.7 : 0.85) / ARRANGE_SPEED
 
           // 1) Con trỏ bay tới mảnh theo đường cong (x, y dùng ease khác nhau)
           tl.to(cur, { x: d.cx + d.sx + d.gx, duration: approach, ease: 'sine.inOut' }, t)
@@ -190,7 +192,7 @@ export function Intro({ cardRef, onReveal, onDone }: Props) {
           tl.to(cur, { scale: 0.8, duration: 0.1, ease: 'power1.in' }, t)
           tl.to(cur, { scale: 1, duration: 0.15, ease: 'back.out(3)' }, t + 0.1)
           tl.to(el, { scale: d.s * 1.06, duration: 0.1 }, t)
-          t += 0.2
+          t += 0.2 / ARRANGE_SPEED
 
           // 3) Kéo về vị trí cuối. Mảnh và con trỏ dùng chung ease nên dính chặt vào nhau.
           tl.to(el, { x: 0, duration: drag, ease: 'power2.inOut' }, t)
